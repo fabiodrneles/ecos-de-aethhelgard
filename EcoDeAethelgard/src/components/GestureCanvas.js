@@ -32,7 +32,7 @@ import { recognizeShape } from '../utils/shapeRecognizer';
 
 const SHAPE_LABELS = {
   circle: 'Círculo',
-  triangle: 'Triângulo',
+  letter_v: 'Letra V',
   horizontal_line: 'Linha Horizontal',
   vertical_line: 'Linha Vertical',
   rectangle: 'Retângulo',
@@ -49,7 +49,10 @@ const HAPTIC_OPTIONS = {
 const HAPTIC_POINT_INTERVAL = 12;
 
 // Confiança mínima para aceitar o reconhecimento
-const MIN_CONFIDENCE = 0.60;
+const SHAPE_MIN_CONFIDENCE = {
+  default: 0.60,
+  letter_v: 0.55,
+};
 
 // ---------------------------------------------------------------------------
 // Componente
@@ -105,8 +108,10 @@ export default function GestureCanvas({
 
     setLastResult(result);
 
+    const requiredConfidence =
+      SHAPE_MIN_CONFIDENCE[result.shape] ?? SHAPE_MIN_CONFIDENCE.default;
     const isRecognized =
-      result.shape !== 'unknown' && result.confidence >= MIN_CONFIDENCE;
+      result.shape !== 'unknown' && result.confidence >= requiredConfidence;
 
     if (isRecognized) {
       triggerHaptic('notificationSuccess');
@@ -162,7 +167,7 @@ export default function GestureCanvas({
         accessible={true}
         accessibilityLabel="Área de desenho de gestos. Desenhe formas geométricas com o dedo."
         accessibilityRole="none"
-        accessibilityHint="Deslize o dedo para desenhar círculos, triângulos ou linhas"
+        accessibilityHint="Deslize o dedo para desenhar círculos, letra V ou linhas"
       >
         {/* Instrução inicial */}
         {!lastResult && displayPoints.length === 0 && (

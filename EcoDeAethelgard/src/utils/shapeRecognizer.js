@@ -2,7 +2,7 @@
  * shapeRecognizer.js — Motor de Reconhecimento de Formas Geométricas
  *
  * Identifica 6 formas a partir de coordenadas (x, y) capturadas por gesto:
- * Círculo, Triângulo, Linha Horizontal, Linha Vertical, Retângulo, Quadrado.
+ * Círculo, Letra V, Linha Horizontal, Linha Vertical, Retângulo, Quadrado.
  *
  * Pipeline: suavização → normalização → reamostragem → extração de features → classificação
  *
@@ -26,7 +26,7 @@ const DEFAULT_CONFIG = {
   circularityThreshold: 0.70,
 
   // Detecção de vértices — ângulo mínimo de mudança de direção (graus)
-  cornerAngleThreshold: 52,
+  cornerAngleThreshold: 48,
 
   // Detecção de vértices — janela de pontos para calcular vetores de direção
   cornerWindowSize: 5,
@@ -47,6 +47,12 @@ const DEFAULT_CONFIG = {
 
   // Distância mínima entre dois vértices detectados (normalizada) para merge
   cornerMergeDistance: 0.09,
+
+  // Altura mínima para a letra V (normalizada)
+  letterVMinHeight: 0.22,
+
+  // Separação mínima entre início e fim para a letra V (normalizada)
+  letterVMinEndpointSeparation: 0.22,
 };
 
 // ---------------------------------------------------------------------------
@@ -316,6 +322,52 @@ function detectCorners(
   return merged;
 }
 
+/**
+ * Detecta padrão de letra V:
+ * - Traço aberto
+ * - 1 a 3 vértices (normalmente 1 principal)
+ * - Vértice principal abaixo dos endpoints
+ */
+function detectVShape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
+  if (points.length < 3 || corners.length < 1 || closed) {
+    return { isV: false, score: 0 };
+  }
+
+  const start = points[0];
+  const end = points[points.length - 1];
+  const strongestCorner = corners.reduce(
+    (best, current) => (current.angle > best.angle ? current : best),
+    corners[0],
+  );
+
+  const endpointSeparation = Math.abs(start.x - end.x);
+  const endpointGapRatio = distance(start, end) / (bb.diagonal || 1);
+  const cornerBelowEndpoints =
+    strongestCorner.point.y > Math.max(start.y, end.y) + 0.05;
+  const oneToThreeCorners = corners.length >= 1 && corners.length <= 3;
+  const enoughHeight = bb.height >= cfg.letterVMinHeight;
+  const enoughOpening =
+    endpointSeparation >= cfg.letterVMinEndpointSeparation &&
+    endpointGapRatio > cfg.closureThreshold * 1.25;
+
+  const angleThresholdRad = (cfg.cornerAngleThreshold * Math.PI) / 180;
+  const strongTurn = strongestCorner.angle > angleThresholdRad;
+
+  let score = 0;
+  if (oneToThreeCorners) score += 0.20;
+  if (cornerBelowEndpoints) score += 0.30;
+  if (enoughHeight) score += 0.20;
+  if (enoughOpening) score += 0.20;
+  if (strongTurn) score += 0.10;
+
+  return {
+    isV: score >= 0.62,
+    score: Math.min(1, score),
+    endpointGapRatio,
+    endpointSeparation,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Classificador principal
 // ---------------------------------------------------------------------------
@@ -356,12 +408,18 @@ function recognizeShape(rawPoints, config = {}) {
   const closed = isClosed(resampled, cfg.closureThreshold);
   const aspectRatio = bb.width / (bb.height || 0.001);
   const inverseAspect = bb.height / (bb.width || 0.001);
+  const endpointGapRatio =
+    distance(resampled[0], resampled[resampled.length - 1]) /
+    (bb.diagonal || 1);
+  const vCandidate = detectVShape(resampled, corners, closed, bb, cfg);
 
   const debugInfo = {
     pointCount: rawPoints.length,
     circularity: circ,
     cornerCount: corners.length,
     isClosed: closed,
+    endpointGapRatio,
+    letterVScore: vCandidate.score,
     aspectRatio,
     boundingBox: { w: bb.width, h: bb.height },
   };
@@ -403,15 +461,13 @@ function recognizeShape(rawPoints, config = {}) {
     };
   }
 
-  // 4. TRIÂNGULO — 3 vértices + traço fechado
-  if (corners.length === 3 && closed) {
-    const avgAngle =
-      corners.reduce((s, c) => s + c.angle, 0) / corners.length;
-    const confidence = Math.min(1, 0.6 + avgAngle / Math.PI * 0.4);
+  // 4. LETRA V — padrão de traço aberto com vértice principal
+  if (vCandidate.isV) {
+    const confidence = Math.max(0.55, vCandidate.score);
     return {
-      shape: 'triangle',
+      shape: 'letter_v',
       confidence,
-      debug: { ...debugInfo, reason: '3_corners_closed' },
+      debug: { ...debugInfo, reason: 'v_shape_pattern' },
     };
   }
 
@@ -447,12 +503,13 @@ function recognizeShape(rawPoints, config = {}) {
     };
   }
 
-  // Triângulo imperfeito (traço não completamente fechado)
-  if (corners.length === 3) {
+  // Letra V imperfeita
+  if (vCandidate.score >= 0.50) {
+    const confidence = Math.max(0.50, vCandidate.score * 0.9);
     return {
-      shape: 'triangle',
-      confidence: 0.45,
-      debug: { ...debugInfo, reason: 'relaxed_triangle_open_low_confidence' },
+      shape: 'letter_v',
+      confidence,
+      debug: { ...debugInfo, reason: 'relaxed_v_shape' },
     };
   }
 
@@ -490,6 +547,7 @@ export {
   boundingBox,
   circularity,
   detectCorners,
+  detectVShape,
   isClosed,
   distance,
   centroid,
