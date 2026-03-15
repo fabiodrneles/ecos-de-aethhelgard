@@ -36,7 +36,6 @@ const SHAPE_LABELS = {
   number_7: 'Número 7',
   letter_v: 'Letra V',
   letter_l: 'Letra L',
-  letter_t: 'Letra T',
   unknown: 'Gesto não reconhecido',
 };
 
@@ -55,7 +54,6 @@ const SHAPE_MIN_CONFIDENCE = {
   number_7: 0.56,
   letter_v: 0.55,
   letter_l: 0.55,
-  letter_t: 0.56,
 };
 
 // ---------------------------------------------------------------------------
@@ -171,7 +169,7 @@ export default function GestureCanvas({
         accessible={true}
         accessibilityLabel="Área de desenho de gestos. Desenhe formas geométricas com o dedo."
         accessibilityRole="none"
-        accessibilityHint="Deslize o dedo para desenhar runas simples: 0, 1, 7, V, L ou T"
+        accessibilityHint="Deslize o dedo para desenhar runas simples: 0, 1, 7, V ou L"
       >
         {/* Instrução inicial */}
         {!lastResult && displayPoints.length === 0 && (
@@ -200,6 +198,17 @@ export default function GestureCanvas({
         {/* Resultado de debug */}
         {debug && lastResult && (
           <View style={styles.debugPanel}>
+            {(() => {
+              const requiredConfidence =
+                SHAPE_MIN_CONFIDENCE[lastResult.shape] ??
+                SHAPE_MIN_CONFIDENCE.default;
+              const best = lastResult.debug?.best;
+              const second = lastResult.debug?.second;
+              const margin = lastResult.debug?.margin;
+              const features = lastResult.debug?.features;
+
+              return (
+                <>
             <Text style={styles.debugTitle}>
               {SHAPE_LABELS[lastResult.shape]}
             </Text>
@@ -216,6 +225,25 @@ export default function GestureCanvas({
               Fechado: {lastResult.debug?.isClosed ? 'Sim' : 'Não'}
               {'  '}Razão: {lastResult.debug?.reason}
             </Text>
+            <Text style={styles.debugDetail}>
+              Min. exigido: {(requiredConfidence * 100).toFixed(0)}%
+            </Text>
+            <Text style={styles.debugDetail}>
+              Top1: {best?.shape ?? '-'} ({((best?.score ?? 0) * 100).toFixed(0)}%)
+              {'  '}Top2: {second?.shape ?? '-'} ({((second?.score ?? 0) * 100).toFixed(0)}%)
+            </Text>
+            <Text style={styles.debugDetail}>
+              Margem: {margin !== undefined ? margin.toFixed(3) : '-'}
+              {'  '}Validação: {lastResult.debug?.validation ?? '-'}
+            </Text>
+            <Text style={styles.debugDetail}>
+              TopHor: {features?.topHorizontalRatio?.toFixed(2) ?? '-'}
+              {'  '}DiagDown: {features?.diagonalDownRatio?.toFixed(2) ?? '-'}
+              {'  '}BottomCenter: {features?.centerBottomness?.toFixed(2) ?? '-'}
+            </Text>
+                </>
+              );
+            })()}
           </View>
         )}
       </View>

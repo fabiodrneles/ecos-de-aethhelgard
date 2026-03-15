@@ -1,13 +1,15 @@
 /**
  * shapeRecognizer.js — Motor de Reconhecimento de Glifos Alfanuméricos
  *
- * Identifica 6 glifos a partir de coordenadas (x, y) capturadas por gesto:
- * Número 0, Número 1, Número 7, Letra V, Letra L, Letra T.
+ * Identifica glifos unistroke a partir de coordenadas (x, y):
+ * Número 0, Número 1, Número 7, Letra V e Letra L.
  *
  * Pipeline: suavização → normalização → reamostragem → extração de features → classificação
  *
  * Todos os limiares estão centralizados em DEFAULT_CONFIG para ajuste fino.
  */
+
+import { recognizeUnistrokeGlyph } from './templateGlyphRecognizer';
 
 // ---------------------------------------------------------------------------
 // Configuração — ajuste estes valores para calibrar o reconhecimento
@@ -58,6 +60,12 @@ const DEFAULT_CONFIG = {
 
   // Limiar mínimo para classificar número 7
   number7MinScore: 0.60,
+
+  // Score mínimo para aceitar template
+  templateMinScore: 0.72,
+
+  // Margem mínima entre top1 e top2 para evitar ambiguidade
+  templateMinMargin: 0.10,
 };
 
 // ---------------------------------------------------------------------------
@@ -510,7 +518,6 @@ function detectTShape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
 function recognizeShape(rawPoints, config = {}) {
   const cfg = { ...DEFAULT_CONFIG, ...config };
 
-  // Rejeitar traços muito curtos
   if (!rawPoints || rawPoints.length < cfg.minPoints) {
     return {
       shape: 'unknown',
@@ -519,159 +526,33 @@ function recognizeShape(rawPoints, config = {}) {
     };
   }
 
-  // --- Pipeline de pré-processamento ---
+  const templateResult = recognizeUnistrokeGlyph(rawPoints, {
+    resampleCount: cfg.resampleCount,
+    minScore: cfg.templateMinScore,
+    minMargin: cfg.templateMinMargin,
+  });
+
   const smoothed = smoothPoints(rawPoints, cfg.smoothWindowSize);
   const normalized = normalizePoints(smoothed);
   const resampled = resamplePoints(normalized, cfg.resampleCount);
-
-  // --- Extração de features ---
   const bb = boundingBox(resampled);
-  const circ = circularity(resampled);
   const corners = detectCorners(
     resampled,
     cfg.cornerWindowSize,
     cfg.cornerAngleThreshold,
     cfg.cornerMergeDistance,
   );
-  const closed = isClosed(resampled, cfg.closureThreshold);
-  const aspectRatio = bb.width / (bb.height || 0.001);
-  const inverseAspect = bb.height / (bb.width || 0.001);
-  const endpointGapRatio =
-    distance(resampled[0], resampled[resampled.length - 1]) /
-    (bb.diagonal || 1);
-  const vCandidate = detectVShape(resampled, corners, closed, bb, cfg);
-  const lCandidate = detectLShape(resampled, corners, closed, bb, cfg);
-  const sevenCandidate = detect7Shape(resampled, corners, closed, bb, cfg);
-  const tCandidate = detectTShape(resampled, corners, closed, bb, cfg);
 
-  const debugInfo = {
-    pointCount: rawPoints.length,
-    circularity: circ,
-    cornerCount: corners.length,
-    isClosed: closed,
-    endpointGapRatio,
-    letterVScore: vCandidate.score,
-    letterLScore: lCandidate.score,
-    number7Score: sevenCandidate.score,
-    letterTScore: tCandidate.score,
-    aspectRatio,
-    boundingBox: { w: bb.width, h: bb.height },
-  };
-
-  // --- Classificação (ordem importa) ---
-
-  // 1. NÚMERO 1 — traço vertical dominante
-  if (
-    bb.width < cfg.lineMaxDeviation &&
-    inverseAspect >= cfg.lineAspectRatioMin
-  ) {
-    const confidence = Math.min(1, 1 - bb.width / (bb.height || 1));
-    return {
-      shape: 'number_1',
-      confidence,
-      debug: { ...debugInfo, reason: 'number_1_vertical_stroke' },
-    };
-  }
-
-  // 2. NÚMERO 0 — traço fechado e circular
-  if (circ >= cfg.circularityThreshold && closed) {
-    return {
-      shape: 'number_0',
-      confidence: circ,
-      debug: { ...debugInfo, reason: 'number_0_closed_round' },
-    };
-  }
-
-  // 3. LETRA V — padrão de traço aberto com vértice principal
-  if (vCandidate.isV) {
-    const confidence = Math.max(0.55, vCandidate.score);
-    return {
-      shape: 'letter_v',
-      confidence,
-      debug: { ...debugInfo, reason: 'v_shape_pattern' },
-    };
-  }
-
-  // 4. LETRA L — ângulo reto aberto
-  if (lCandidate.isL) {
-    return {
-      shape: 'letter_l',
-      confidence: Math.max(0.55, lCandidate.score),
-      debug: { ...debugInfo, reason: 'l_shape_pattern' },
-    };
-  }
-
-  // 5. NÚMERO 7 — barra superior + diagonal
-  if (sevenCandidate.is7) {
-    return {
-      shape: 'number_7',
-      confidence: Math.max(0.56, sevenCandidate.score),
-      debug: { ...debugInfo, reason: 'number_7_pattern' },
-    };
-  }
-
-  // 6. LETRA T — barra superior + haste central
-  if (tCandidate.isT) {
-    return {
-      shape: 'letter_t',
-      confidence: Math.max(0.56, tCandidate.score),
-      debug: { ...debugInfo, reason: 't_shape_pattern' },
-    };
-  }
-
-  // --- Fallback com limiares relaxados ---
-
-  // Número 0 imperfeito (não completamente fechado ou circularidade menor)
-  if (circ >= cfg.circularityThreshold * 0.75 && corners.length <= 1) {
-    return {
-      shape: 'number_0',
-      confidence: circ * 0.8,
-      debug: { ...debugInfo, reason: 'relaxed_number_0' },
-    };
-  }
-
-  // Letra V imperfeita
-  if (vCandidate.score >= 0.50) {
-    const confidence = Math.max(0.50, vCandidate.score * 0.9);
-    return {
-      shape: 'letter_v',
-      confidence,
-      debug: { ...debugInfo, reason: 'relaxed_v_shape' },
-    };
-  }
-
-  // Letra L imperfeita
-  if (lCandidate.score >= 0.50) {
-    return {
-      shape: 'letter_l',
-      confidence: 0.50,
-      debug: { ...debugInfo, reason: 'relaxed_l_shape' },
-    };
-  }
-
-  // Número 7 imperfeito
-  if (sevenCandidate.score >= 0.50) {
-    return {
-      shape: 'number_7',
-      confidence: 0.50,
-      debug: { ...debugInfo, reason: 'relaxed_number_7' },
-    };
-  }
-
-  // Letra T imperfeita
-  if (tCandidate.score >= 0.50) {
-    return {
-      shape: 'letter_t',
-      confidence: 0.50,
-      debug: { ...debugInfo, reason: 'relaxed_t_shape' },
-    };
-  }
-
-  // Não reconhecido
   return {
-    shape: 'unknown',
-    confidence: 0,
-    debug: { ...debugInfo, reason: 'no_match' },
+    shape: templateResult.shape,
+    confidence: templateResult.confidence,
+    debug: {
+      pointCount: rawPoints.length,
+      cornerCount: corners.length,
+      isClosed: isClosed(resampled, cfg.closureThreshold),
+      boundingBox: { w: bb.width, h: bb.height },
+      ...templateResult.debug,
+    },
   };
 }
 

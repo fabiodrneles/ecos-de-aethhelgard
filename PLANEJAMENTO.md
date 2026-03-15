@@ -35,7 +35,7 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 | Número 1        | Traço reto vertical                     | **Invocar / Canalizar** — ativa colunas e focos de energia  | Linha vertical dominante         |
 | Número 7        | Barra superior + diagonal               | **Direcionar / Cortar** — aponta rotas e abre travas         | padrão angular de 7 detectado   |
 | Letra L         | Ângulo reto aberto                      | **Destravar / Revelar** — libera inscrições e passagens      | padrão em L com canto forte     |
-| Letra T         | Barra superior + haste central          | **Selar / Harmonizar** — fecha ciclos e estabiliza mecanismos | padrão em T detectado          |
+| Letra T         | Barra superior + haste central          | **Selar / Harmonizar** — fecha ciclos e estabiliza mecanismos | fase 2 (multi-traço)           |
 
 ---
 
@@ -332,7 +332,7 @@ Entrada: array de pontos {x, y, timestamp}
   f. Se padrão em V aberto → LETRA V
   g. Se padrão em L aberto (canto forte) → LETRA L
   h. Se barra superior + diagonal → NÚMERO 7
-  i. Se barra superior + haste central → LETRA T
+  i. (Fase 2) Se barra superior + haste central em multi-traço → LETRA T
   j. Caso contrário → GLIFO NÃO RECONHECIDO
 
 * Circularidade = 4π × área / perímetro²

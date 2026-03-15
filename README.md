@@ -2,7 +2,7 @@
 
 Protótipo do motor de reconhecimento gestual para um jogo de aventura sonora para cegos, desenvolvido em React Native.
 
-O jogador desenha glifos alfanuméricos na tela (Número 0, Número 1, Número 7, Letra V, Letra L, Letra T) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
+O jogador desenha glifos alfanuméricos na tela (Número 0, Número 1, Número 7, Letra V, Letra L) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
 
 ---
 
@@ -19,7 +19,7 @@ Ao abrir o app no celular, você vai encontrar:
   2. Uma **voz sintetizada** em português fala o resultado: *"Identificado: Número 0"*, *"Identificado: Letra V"*, ou *"Gesto não reconhecido"*.
   3. Em modo de desenvolvimento, um **painel de debug** aparece na parte inferior da tela mostrando a forma detectada, o percentual de confiança, a circularidade do traço, o número de vértices encontrados e se o traço foi considerado fechado. No canto superior direito, um **histórico** lista as últimas formas reconhecidas.
 
-Os 6 glifos que o motor reconhece atualmente são: **Número 0**, **Número 1**, **Número 7**, **Letra V**, **Letra L** e **Letra T**. Eles funcionam como runas de entrada definidas no design do jogo completo (`PLANEJAMENTO.md`), onde cada uma terá um significado narrativo (ativar mecanismos, ecolocalizar, abrir passagens, etc.).
+Os glifos unistroke que o motor reconhece atualmente são: **Número 0**, **Número 1**, **Número 7**, **Letra V** e **Letra L**. Eles funcionam como runas de entrada definidas no design do jogo completo (`PLANEJAMENTO.md`), onde cada uma terá um significado narrativo (ativar mecanismos, ecolocalizar, abrir passagens, etc.). A **Letra T** fica para fase multi-traço.
 
 **O que ainda não está implementado:** sistema de cenas, narração com voz IA, áudio binaural/HRTF, paisagens sonoras ambientais, padrões de haptics avançados (heartbeat, ritual_rhythm), state machine do jogo e o fluxo narrativo da Vertical Slice. Esses componentes serão construídos sobre este motor.
 
@@ -297,7 +297,6 @@ Quando o app abrir, você deve ver:
 | Número 7 | Barra superior + diagonal descendente | "Identificado: Número 7" |
 | Letra V | 2 traços diagonais formando um V aberto | "Identificado: Letra V" |
 | Letra L | Traço em ângulo reto aberto | "Identificado: Letra L" |
-| Letra T | Barra superior com haste no centro | "Identificado: Letra T" |
 
 > Se ouvir "Gesto não reconhecido", tente desenhar a forma com mais definição (traço mais lento e deliberado). O painel de debug mostra as métricas — use-as para entender por que o reconhecimento falhou.
 
