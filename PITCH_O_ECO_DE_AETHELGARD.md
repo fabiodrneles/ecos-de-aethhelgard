@@ -42,7 +42,7 @@ Estudos mostram que **redução de estímulos visuais pode diminuir carga cognit
 
 **O Eco de Aethelgard**:
 - Gameplay 100% guiado por áudio binaural
-- Interação por gestos simples (formas)
+- Interação por gestos simples (runas)
 - Ritmo e haptics como linguagem emocional
 
 Isso reduz:

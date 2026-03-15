@@ -90,7 +90,7 @@ Neste modo, você verá:
 
 - Os pontos capturados do gesto (dots verdes na tela)
 - Painel com resultado, confiança, nº de vértices, circularidade
-- Histórico das últimas 5 formas reconhecidas
+- Histórico das últimas 5 runas reconhecidas
 
 Para desativar manualmente, altere `DEBUG_MODE` em `App.js`:
 
@@ -121,7 +121,7 @@ Os limiares do reconhecedor estão em `src/utils/shapeRecognizer.js` no objeto `
 | `cornerAngleThreshold` | 40° | ↓ detecta vértices menos pronunciados |
 | `closureThreshold` | 0.20 | ↑ aceita formas menos "fechadas" |
 | `lineMaxDeviation` | 0.20 | ↑ aceita linhas menos retas |
-| `squareAspectRatioMin/Max` | 0.75–1.25 | ↑ range aceita quadrados mais irregulares |
+| `squareAspectRatioMin/Max` | 0.75–1.25 | parâmetro legado (não usado no modo atual de 4 runas) |
 
 Também é possível passar overrides em runtime via prop `recognizerConfig` do `GestureCanvas`:
 

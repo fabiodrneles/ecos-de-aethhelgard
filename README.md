@@ -2,7 +2,7 @@
 
 Protótipo do motor de reconhecimento gestual para um jogo de aventura sonora para cegos, desenvolvido em React Native.
 
-O jogador desenha glifos alfanuméricos na tela (Número 0, Número 1, Número 7, Letra V, Letra L) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
+O jogador desenha **runas** na tela (**Círculo**, **Linha Vertical**, **Linha Horizontal** e **Letra V**) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
 
 ---
 
@@ -12,14 +12,14 @@ Este protótipo implementa o **motor de reconhecimento de gestos** — a fundaç
 
 Ao abrir o app no celular, você vai encontrar:
 
-- **Uma tela escura quase totalmente preta.** Isso é intencional — o jogo foi projetado para cegos, então a tela não comunica nada. Há apenas um texto quase invisível ("Desenhe uma forma com o dedo") que serve de referência visual para desenvolvedores.
+- **Uma tela escura quase totalmente preta.** Isso é intencional — o jogo foi projetado para cegos, então a tela não comunica nada. Há apenas um texto quase invisível ("Desenhe uma runa com o dedo") que serve de referência visual para desenvolvedores.
 - **Ao tocar e arrastar o dedo pela tela,** o celular vibra levemente a cada punhado de pontos capturados, confirmando pelo tato que o traço está sendo registrado.
 - **Ao levantar o dedo,** o motor analisa o traço e três coisas acontecem simultaneamente:
   1. O celular **vibra** com um padrão de sucesso (se reconheceu) ou de aviso (se não reconheceu).
-  2. Uma **voz sintetizada** em português fala o resultado: *"Identificado: Número 0"*, *"Identificado: Letra V"*, ou *"Gesto não reconhecido"*.
-  3. Em modo de desenvolvimento, um **painel de debug** aparece na parte inferior da tela mostrando a forma detectada, o percentual de confiança, a circularidade do traço, o número de vértices encontrados e se o traço foi considerado fechado. No canto superior direito, um **histórico** lista as últimas formas reconhecidas.
+  2. Uma **voz sintetizada** em português fala o resultado: *"Identificado: Círculo"*, *"Identificado: Letra V"*, ou *"Gesto não reconhecido"*.
+  3. Em modo de desenvolvimento, um **painel de debug** aparece na parte inferior da tela mostrando a runa detectada, o percentual de confiança, a circularidade do traço, o número de vértices encontrados e se o traço foi considerado fechado. No canto superior direito, um **histórico** lista as últimas runas reconhecidas.
 
-Os glifos unistroke que o motor reconhece atualmente são: **Número 0**, **Número 1**, **Número 7**, **Letra V** e **Letra L**. Eles funcionam como runas de entrada definidas no design do jogo completo (`PLANEJAMENTO.md`), onde cada uma terá um significado narrativo (ativar mecanismos, ecolocalizar, abrir passagens, etc.). A **Letra T** fica para fase multi-traço.
+As runas unistroke que o motor reconhece atualmente são: **Círculo**, **Linha Vertical**, **Linha Horizontal** e **Letra V**. Elas funcionam como runas de entrada definidas no design do jogo completo (`PLANEJAMENTO.md`), com papéis narrativos claros: despertar mecanismos, canalizar energia, estabilizar selos e ecolocalizar o ambiente.
 
 **O que ainda não está implementado:** sistema de cenas, narração com voz IA, áudio binaural/HRTF, paisagens sonoras ambientais, padrões de haptics avançados (heartbeat, ritual_rhythm), state machine do jogo e o fluxo narrativo da Vertical Slice. Esses componentes serão construídos sobre este motor.
 
@@ -82,10 +82,10 @@ cd /caminho/para/o-eco-de-aethelgard
 Verifique que os arquivos de código-fonte existem:
 
 ```bash
-ls App.js src/utils/shapeRecognizer.js src/components/GestureCanvas.js
+ls App.js src/utils/shapeRecognizer.js src/utils/templateGlyphRecognizer.js src/components/GestureCanvas.js
 ```
 
-Você deve ver os três arquivos listados sem erro.
+Você deve ver os arquivos listados sem erro.
 
 ---
 
@@ -279,26 +279,25 @@ npx react-native run-android
 
 Quando o app abrir, você deve ver:
 
-1. **Tela preta** com o texto sutil "Desenhe uma forma com o dedo" (texto quase transparente — lembre-se, o jogo é para cegos, a tela é propositalmente escura)
-2. **Desenhe o número 0** com o dedo na tela
+1. **Tela preta** com o texto sutil "Desenhe uma runa com o dedo" (texto quase transparente — lembre-se, o jogo é para cegos, a tela é propositalmente escura)
+2. **Desenhe a runa do Círculo** com o dedo na tela
 3. Você deve receber:
    - **Pontos verdes** aparecendo no traço do seu dedo (modo debug ativo em dev)
    - **Vibração leve** a cada ~12 pontos durante o traço
-  - Ao soltar o dedo: **vibração de sucesso** + voz falando **"Identificado: Número 0"**
-   - **Painel na parte inferior** mostrando: forma reconhecida, confiança %, circularidade, etc.
-   - **Painel no canto superior direito** com o histórico das últimas formas
+  - Ao soltar o dedo: **vibração de sucesso** + voz falando **"Identificado: Círculo"**
+  - **Painel na parte inferior** mostrando: runa reconhecida, confiança %, circularidade, etc.
+  - **Painel no canto superior direito** com o histórico das últimas runas
 
-### Glifos para testar
+### Runas para testar
 
-| Glifo | Como desenhar | O que esperar ouvir |
+| Runa | Como desenhar | O que esperar ouvir |
 |---|---|---|
-| Número 0 | Traço circular, terminar perto de onde começou | "Identificado: Número 0" |
-| Número 1 | Traço reto de cima para baixo (ou inverso) | "Identificado: Número 1" |
-| Número 7 | Barra superior + diagonal descendente | "Identificado: Número 7" |
+| Círculo | Traço circular, terminar perto de onde começou | "Identificado: Círculo" |
+| Linha Vertical | Traço reto vertical (cima→baixo ou baixo→cima) | "Identificado: Linha Vertical" |
+| Linha Horizontal | Traço reto horizontal (esquerda→direita ou inverso) | "Identificado: Linha Horizontal" |
 | Letra V | 2 traços diagonais formando um V aberto | "Identificado: Letra V" |
-| Letra L | Traço em ângulo reto aberto | "Identificado: Letra L" |
 
-> Se ouvir "Gesto não reconhecido", tente desenhar a forma com mais definição (traço mais lento e deliberado). O painel de debug mostra as métricas — use-as para entender por que o reconhecimento falhou.
+> Se ouvir "Gesto não reconhecido", tente desenhar a runa com mais definição (traço mais lento e deliberado). O painel de debug mostra as métricas — use-as para entender por que o reconhecimento falhou.
 
 ---
 
@@ -308,7 +307,7 @@ Para simular a experiência do público-alvo:
 
 1. Coloque **fones de ouvido**
 2. **Feche os olhos** (ou vire o celular de cabeça para baixo)
-3. Desenhe os glifos apenas pelo tato
+3. Desenhe as runas apenas pelo tato
 4. Ouça o feedback de voz e sinta as vibrações
 5. Anote se conseguiu entender o que o app comunicou sem precisar olhar
 
@@ -405,7 +404,7 @@ Verifique também que a **primeira linha** do `index.js` é:
 import 'react-native-gesture-handler';
 ```
 
-### O reconhecimento está errando muitas formas
+### O reconhecimento está errando muitas runas
 
 Os limiares podem ser ajustados no arquivo `src/utils/shapeRecognizer.js`, objeto `DEFAULT_CONFIG`. Consulte o arquivo `SETUP.md` para a tabela completa de parâmetros.
 
@@ -420,7 +419,8 @@ o-eco-de-aethelgard/
 │   ├── components/
 │   │   └── GestureCanvas.js        # Captura de gestos + TTS + Haptics
 │   └── utils/
-│       └── shapeRecognizer.js      # Motor matemático de reconhecimento de formas
+│       ├── shapeRecognizer.js      # Orquestração do reconhecimento
+│       └── templateGlyphRecognizer.js # Motor principal de reconhecimento das 4 runas
 ├── PLANEJAMENTO.md                 # Roteiro técnico completo da Vertical Slice
 ├── SETUP.md                       # Referência de configuração e calibração
 └── README.md                       # Este arquivo
