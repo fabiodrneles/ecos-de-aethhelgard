@@ -2,7 +2,7 @@
 
 Protótipo do motor de reconhecimento gestual para um jogo de aventura sonora para cegos, desenvolvido em React Native.
 
-O jogador desenha formas geométricas na tela (Círculo, Letra V, Linhas, Quadrado, Retângulo) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
+O jogador desenha glifos alfanuméricos na tela (Número 0, Número 1, Número 7, Letra V, Letra L, Letra T) e recebe feedback por áudio (TTS) e vibração (haptics). Nenhuma informação depende da tela — tudo é comunicado por som e toque.
 
 ---
 
@@ -16,10 +16,10 @@ Ao abrir o app no celular, você vai encontrar:
 - **Ao tocar e arrastar o dedo pela tela,** o celular vibra levemente a cada punhado de pontos capturados, confirmando pelo tato que o traço está sendo registrado.
 - **Ao levantar o dedo,** o motor analisa o traço e três coisas acontecem simultaneamente:
   1. O celular **vibra** com um padrão de sucesso (se reconheceu) ou de aviso (se não reconheceu).
-  2. Uma **voz sintetizada** em português fala o resultado: *"Identificado: Círculo"*, *"Identificado: Letra V"*, ou *"Gesto não reconhecido"*.
+  2. Uma **voz sintetizada** em português fala o resultado: *"Identificado: Número 0"*, *"Identificado: Letra V"*, ou *"Gesto não reconhecido"*.
   3. Em modo de desenvolvimento, um **painel de debug** aparece na parte inferior da tela mostrando a forma detectada, o percentual de confiança, a circularidade do traço, o número de vértices encontrados e se o traço foi considerado fechado. No canto superior direito, um **histórico** lista as últimas formas reconhecidas.
 
-As 6 formas que o motor reconhece atualmente são: **Círculo**, **Letra V**, **Linha Horizontal**, **Linha Vertical**, **Quadrado** e **Retângulo**. São as mesmas formas definidas no design do jogo completo (`PLANEJAMENTO.md`), onde cada uma terá um significado narrativo (ativar mecanismos, ecolocalizar, abrir passagens, etc.).
+Os 6 glifos que o motor reconhece atualmente são: **Número 0**, **Número 1**, **Número 7**, **Letra V**, **Letra L** e **Letra T**. Eles funcionam como runas de entrada definidas no design do jogo completo (`PLANEJAMENTO.md`), onde cada uma terá um significado narrativo (ativar mecanismos, ecolocalizar, abrir passagens, etc.).
 
 **O que ainda não está implementado:** sistema de cenas, narração com voz IA, áudio binaural/HRTF, paisagens sonoras ambientais, padrões de haptics avançados (heartbeat, ritual_rhythm), state machine do jogo e o fluxo narrativo da Vertical Slice. Esses componentes serão construídos sobre este motor.
 
@@ -280,24 +280,24 @@ npx react-native run-android
 Quando o app abrir, você deve ver:
 
 1. **Tela preta** com o texto sutil "Desenhe uma forma com o dedo" (texto quase transparente — lembre-se, o jogo é para cegos, a tela é propositalmente escura)
-2. **Desenhe um círculo** com o dedo na tela
+2. **Desenhe o número 0** com o dedo na tela
 3. Você deve receber:
    - **Pontos verdes** aparecendo no traço do seu dedo (modo debug ativo em dev)
    - **Vibração leve** a cada ~12 pontos durante o traço
-   - Ao soltar o dedo: **vibração de sucesso** + voz falando **"Identificado: Círculo"**
+  - Ao soltar o dedo: **vibração de sucesso** + voz falando **"Identificado: Número 0"**
    - **Painel na parte inferior** mostrando: forma reconhecida, confiança %, circularidade, etc.
    - **Painel no canto superior direito** com o histórico das últimas formas
 
-### Formas para testar
+### Glifos para testar
 
-| Forma | Como desenhar | O que esperar ouvir |
+| Glifo | Como desenhar | O que esperar ouvir |
 |---|---|---|
-| Círculo | Traço circular, terminar perto de onde começou | "Identificado: Círculo" |
+| Número 0 | Traço circular, terminar perto de onde começou | "Identificado: Número 0" |
+| Número 1 | Traço reto de cima para baixo (ou inverso) | "Identificado: Número 1" |
+| Número 7 | Barra superior + diagonal descendente | "Identificado: Número 7" |
 | Letra V | 2 traços diagonais formando um V aberto | "Identificado: Letra V" |
-| Linha Horizontal | Traço reto da esquerda para direita (ou inverso) | "Identificado: Linha Horizontal" |
-| Linha Vertical | Traço reto de cima para baixo (ou inverso) | "Identificado: Linha Vertical" |
-| Quadrado | 4 lados de tamanho similar, fechar a forma | "Identificado: Quadrado" |
-| Retângulo | 4 lados com largura diferente da altura, fechar a forma | "Identificado: Retângulo" |
+| Letra L | Traço em ângulo reto aberto | "Identificado: Letra L" |
+| Letra T | Barra superior com haste no centro | "Identificado: Letra T" |
 
 > Se ouvir "Gesto não reconhecido", tente desenhar a forma com mais definição (traço mais lento e deliberado). O painel de debug mostra as métricas — use-as para entender por que o reconhecimento falhou.
 
@@ -309,7 +309,7 @@ Para simular a experiência do público-alvo:
 
 1. Coloque **fones de ouvido**
 2. **Feche os olhos** (ou vire o celular de cabeça para baixo)
-3. Desenhe as formas apenas pelo tato
+3. Desenhe os glifos apenas pelo tato
 4. Ouça o feedback de voz e sinta as vibrações
 5. Anote se conseguiu entender o que o app comunicou sem precisar olhar
 

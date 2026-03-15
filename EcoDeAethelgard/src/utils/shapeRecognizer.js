@@ -1,8 +1,8 @@
 /**
- * shapeRecognizer.js — Motor de Reconhecimento de Formas Geométricas
+ * shapeRecognizer.js — Motor de Reconhecimento de Glifos Alfanuméricos
  *
- * Identifica 6 formas a partir de coordenadas (x, y) capturadas por gesto:
- * Círculo, Letra V, Linha Horizontal, Linha Vertical, Retângulo, Quadrado.
+ * Identifica 6 glifos a partir de coordenadas (x, y) capturadas por gesto:
+ * Número 0, Número 1, Número 7, Letra V, Letra L, Letra T.
  *
  * Pipeline: suavização → normalização → reamostragem → extração de features → classificação
  *
@@ -41,10 +41,6 @@ const DEFAULT_CONFIG = {
   // Desvio máximo no eixo perpendicular (fração do eixo principal) para linhas
   lineMaxDeviation: 0.20,
 
-  // Faixa de aspect ratio para classificar como quadrado (vs. retângulo)
-  squareAspectRatioMin: 0.75,
-  squareAspectRatioMax: 1.25,
-
   // Distância mínima entre dois vértices detectados (normalizada) para merge
   cornerMergeDistance: 0.09,
 
@@ -53,6 +49,15 @@ const DEFAULT_CONFIG = {
 
   // Separação mínima entre início e fim para a letra V (normalizada)
   letterVMinEndpointSeparation: 0.22,
+
+  // Limiar mínimo para classificar letra L
+  letterLMinScore: 0.60,
+
+  // Limiar mínimo para classificar letra T
+  letterTMinScore: 0.62,
+
+  // Limiar mínimo para classificar número 7
+  number7MinScore: 0.60,
 };
 
 // ---------------------------------------------------------------------------
@@ -368,12 +373,135 @@ function detectVShape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
   };
 }
 
+/**
+ * Detecta padrão de letra L (traço aberto em ângulo reto).
+ */
+function detectLShape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
+  if (points.length < 3 || corners.length < 1 || closed) {
+    return { isL: false, score: 0 };
+  }
+
+  const strongestCorner = corners.reduce(
+    (best, current) => (current.angle > best.angle ? current : best),
+    corners[0],
+  );
+
+  const cornerLow = strongestCorner.point.y >= bb.minY + bb.height * 0.55;
+  const cornerNearSide =
+    strongestCorner.point.x <= bb.minX + bb.width * 0.35 ||
+    strongestCorner.point.x >= bb.maxX - bb.width * 0.35;
+  const enoughHeight = bb.height >= 0.30;
+  const enoughWidth = bb.width >= 0.16;
+
+  const start = points[0];
+  const end = points[points.length - 1];
+  const endpointGapRatio = distance(start, end) / (bb.diagonal || 1);
+  const openEnough = endpointGapRatio > cfg.closureThreshold * 1.15;
+
+  const angleThresholdRad = (cfg.cornerAngleThreshold * Math.PI) / 180;
+  const rightLikeTurn =
+    strongestCorner.angle >= angleThresholdRad * 0.85 &&
+    strongestCorner.angle <= Math.PI * 0.85;
+
+  let score = 0;
+  if (cornerLow) score += 0.25;
+  if (cornerNearSide) score += 0.20;
+  if (enoughHeight) score += 0.20;
+  if (enoughWidth) score += 0.15;
+  if (openEnough) score += 0.10;
+  if (rightLikeTurn) score += 0.10;
+
+  return {
+    isL: score >= cfg.letterLMinScore,
+    score: Math.min(1, score),
+  };
+}
+
+/**
+ * Detecta padrão de número 7 (barra superior + diagonal descendente).
+ */
+function detect7Shape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
+  if (points.length < 3 || corners.length < 1 || closed) {
+    return { is7: false, score: 0 };
+  }
+
+  const strongestCorner = corners.reduce(
+    (best, current) => (current.angle > best.angle ? current : best),
+    corners[0],
+  );
+
+  const cornerHigh = strongestCorner.point.y <= bb.minY + bb.height * 0.40;
+  const cornerNearSide =
+    strongestCorner.point.x <= bb.minX + bb.width * 0.35 ||
+    strongestCorner.point.x >= bb.maxX - bb.width * 0.35;
+  const enoughWidth = bb.width >= 0.28;
+  const enoughHeight = bb.height >= 0.20;
+
+  const start = points[0];
+  const end = points[points.length - 1];
+  const endpointDrop = Math.abs(end.y - start.y);
+  const hasDescendingLeg = endpointDrop >= bb.height * 0.35;
+
+  const angleThresholdRad = (cfg.cornerAngleThreshold * Math.PI) / 180;
+  const sharpTurn = strongestCorner.angle >= angleThresholdRad * 0.9;
+
+  let score = 0;
+  if (cornerHigh) score += 0.25;
+  if (cornerNearSide) score += 0.15;
+  if (enoughWidth) score += 0.20;
+  if (enoughHeight) score += 0.20;
+  if (hasDescendingLeg) score += 0.10;
+  if (sharpTurn) score += 0.10;
+
+  return {
+    is7: score >= cfg.number7MinScore,
+    score: Math.min(1, score),
+  };
+}
+
+/**
+ * Detecta padrão de letra T (barra superior + haste central).
+ */
+function detectTShape(points, corners, closed, bb, cfg = DEFAULT_CONFIG) {
+  if (points.length < 5 || closed) {
+    return { isT: false, score: 0 };
+  }
+
+  const topLimit = bb.minY + bb.height * 0.30;
+  const centerX = bb.minX + bb.width * 0.50;
+  const centerTolerance = bb.width * 0.22;
+
+  const topBandRatio =
+    points.filter((p) => p.y <= topLimit).length / points.length;
+  const centerBandRatio =
+    points.filter((p) => Math.abs(p.x - centerX) <= centerTolerance).length /
+    points.length;
+
+  const enoughWidth = bb.width >= 0.28;
+  const enoughHeight = bb.height >= 0.28;
+  const hasTopCorner = corners.some(
+    (corner) => corner.point.y <= bb.minY + bb.height * 0.40,
+  );
+
+  let score = 0;
+  if (topBandRatio >= 0.22) score += 0.30;
+  if (centerBandRatio >= 0.22) score += 0.30;
+  if (enoughWidth) score += 0.15;
+  if (enoughHeight) score += 0.15;
+  if (hasTopCorner) score += 0.10;
+
+  return {
+    isT: score >= cfg.letterTMinScore,
+    score: Math.min(1, score),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Classificador principal
 // ---------------------------------------------------------------------------
 
 /**
- * Reconhece a forma desenhada a partir de um array de pontos brutos {x, y}.
+ * Reconhece o glifo desenhado a partir de um array de pontos brutos {x, y}.
  *
  * @param {Array<{x: number, y: number}>} rawPoints - Pontos capturados pelo gesto
  * @param {object} [config] - Configuração (merge com DEFAULT_CONFIG)
@@ -412,6 +540,9 @@ function recognizeShape(rawPoints, config = {}) {
     distance(resampled[0], resampled[resampled.length - 1]) /
     (bb.diagonal || 1);
   const vCandidate = detectVShape(resampled, corners, closed, bb, cfg);
+  const lCandidate = detectLShape(resampled, corners, closed, bb, cfg);
+  const sevenCandidate = detect7Shape(resampled, corners, closed, bb, cfg);
+  const tCandidate = detectTShape(resampled, corners, closed, bb, cfg);
 
   const debugInfo = {
     pointCount: rawPoints.length,
@@ -420,48 +551,38 @@ function recognizeShape(rawPoints, config = {}) {
     isClosed: closed,
     endpointGapRatio,
     letterVScore: vCandidate.score,
+    letterLScore: lCandidate.score,
+    number7Score: sevenCandidate.score,
+    letterTScore: tCandidate.score,
     aspectRatio,
     boundingBox: { w: bb.width, h: bb.height },
   };
 
   // --- Classificação (ordem importa) ---
 
-  // 1. LINHA HORIZONTAL — bounding box largo e achatado
-  if (
-    bb.height < cfg.lineMaxDeviation &&
-    aspectRatio >= cfg.lineAspectRatioMin
-  ) {
-    const confidence = Math.min(1, 1 - bb.height / (bb.width || 1));
-    return {
-      shape: 'horizontal_line',
-      confidence,
-      debug: { ...debugInfo, reason: 'low_height_high_aspect' },
-    };
-  }
-
-  // 2. LINHA VERTICAL — bounding box alto e estreito
+  // 1. NÚMERO 1 — traço vertical dominante
   if (
     bb.width < cfg.lineMaxDeviation &&
     inverseAspect >= cfg.lineAspectRatioMin
   ) {
     const confidence = Math.min(1, 1 - bb.width / (bb.height || 1));
     return {
-      shape: 'vertical_line',
+      shape: 'number_1',
       confidence,
-      debug: { ...debugInfo, reason: 'low_width_high_inverse_aspect' },
+      debug: { ...debugInfo, reason: 'number_1_vertical_stroke' },
     };
   }
 
-  // 3. CÍRCULO — alta circularidade + traço fechado
+  // 2. NÚMERO 0 — traço fechado e circular
   if (circ >= cfg.circularityThreshold && closed) {
     return {
-      shape: 'circle',
+      shape: 'number_0',
       confidence: circ,
-      debug: { ...debugInfo, reason: 'high_circularity_closed' },
+      debug: { ...debugInfo, reason: 'number_0_closed_round' },
     };
   }
 
-  // 4. LETRA V — padrão de traço aberto com vértice principal
+  // 3. LETRA V — padrão de traço aberto com vértice principal
   if (vCandidate.isV) {
     const confidence = Math.max(0.55, vCandidate.score);
     return {
@@ -471,35 +592,41 @@ function recognizeShape(rawPoints, config = {}) {
     };
   }
 
-  // 5. QUADRADO — 4 vértices + fechado + aspect ratio ~1:1
-  if (corners.length === 4 && closed) {
-    if (
-      aspectRatio >= cfg.squareAspectRatioMin &&
-      aspectRatio <= cfg.squareAspectRatioMax
-    ) {
-      return {
-        shape: 'square',
-        confidence: 0.85,
-        debug: { ...debugInfo, reason: '4_corners_closed_square_ratio' },
-      };
-    }
-
-    // 6. RETÂNGULO — 4 vértices + fechado + aspect ratio ≠ 1:1
+  // 4. LETRA L — ângulo reto aberto
+  if (lCandidate.isL) {
     return {
-      shape: 'rectangle',
-      confidence: 0.80,
-      debug: { ...debugInfo, reason: '4_corners_closed_rect_ratio' },
+      shape: 'letter_l',
+      confidence: Math.max(0.55, lCandidate.score),
+      debug: { ...debugInfo, reason: 'l_shape_pattern' },
+    };
+  }
+
+  // 5. NÚMERO 7 — barra superior + diagonal
+  if (sevenCandidate.is7) {
+    return {
+      shape: 'number_7',
+      confidence: Math.max(0.56, sevenCandidate.score),
+      debug: { ...debugInfo, reason: 'number_7_pattern' },
+    };
+  }
+
+  // 6. LETRA T — barra superior + haste central
+  if (tCandidate.isT) {
+    return {
+      shape: 'letter_t',
+      confidence: Math.max(0.56, tCandidate.score),
+      debug: { ...debugInfo, reason: 't_shape_pattern' },
     };
   }
 
   // --- Fallback com limiares relaxados ---
 
-  // Círculo imperfeito (não completamente fechado ou circularidade menor)
+  // Número 0 imperfeito (não completamente fechado ou circularidade menor)
   if (circ >= cfg.circularityThreshold * 0.75 && corners.length <= 1) {
     return {
-      shape: 'circle',
+      shape: 'number_0',
       confidence: circ * 0.8,
-      debug: { ...debugInfo, reason: 'relaxed_circle' },
+      debug: { ...debugInfo, reason: 'relaxed_number_0' },
     };
   }
 
@@ -513,17 +640,30 @@ function recognizeShape(rawPoints, config = {}) {
     };
   }
 
-  // Quadrado/retângulo imperfeito
-  if (corners.length === 4) {
-    const shape =
-      aspectRatio >= cfg.squareAspectRatioMin &&
-      aspectRatio <= cfg.squareAspectRatioMax
-        ? 'square'
-        : 'rectangle';
+  // Letra L imperfeita
+  if (lCandidate.score >= 0.50) {
     return {
-      shape,
+      shape: 'letter_l',
       confidence: 0.50,
-      debug: { ...debugInfo, reason: 'relaxed_polygon_open' },
+      debug: { ...debugInfo, reason: 'relaxed_l_shape' },
+    };
+  }
+
+  // Número 7 imperfeito
+  if (sevenCandidate.score >= 0.50) {
+    return {
+      shape: 'number_7',
+      confidence: 0.50,
+      debug: { ...debugInfo, reason: 'relaxed_number_7' },
+    };
+  }
+
+  // Letra T imperfeita
+  if (tCandidate.score >= 0.50) {
+    return {
+      shape: 'letter_t',
+      confidence: 0.50,
+      debug: { ...debugInfo, reason: 'relaxed_t_shape' },
     };
   }
 
@@ -548,6 +688,9 @@ export {
   circularity,
   detectCorners,
   detectVShape,
+  detectLShape,
+  detect7Shape,
+  detectTShape,
   isClosed,
   distance,
   centroid,

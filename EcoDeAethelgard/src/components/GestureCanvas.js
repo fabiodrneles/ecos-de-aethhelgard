@@ -31,12 +31,12 @@ import { recognizeShape } from '../utils/shapeRecognizer';
 // ---------------------------------------------------------------------------
 
 const SHAPE_LABELS = {
-  circle: 'Círculo',
+  number_0: 'Número 0',
+  number_1: 'Número 1',
+  number_7: 'Número 7',
   letter_v: 'Letra V',
-  horizontal_line: 'Linha Horizontal',
-  vertical_line: 'Linha Vertical',
-  rectangle: 'Retângulo',
-  square: 'Quadrado',
+  letter_l: 'Letra L',
+  letter_t: 'Letra T',
   unknown: 'Gesto não reconhecido',
 };
 
@@ -51,7 +51,11 @@ const HAPTIC_POINT_INTERVAL = 12;
 // Confiança mínima para aceitar o reconhecimento
 const SHAPE_MIN_CONFIDENCE = {
   default: 0.60,
+  number_1: 0.58,
+  number_7: 0.56,
   letter_v: 0.55,
+  letter_l: 0.55,
+  letter_t: 0.56,
 };
 
 // ---------------------------------------------------------------------------
@@ -167,7 +171,7 @@ export default function GestureCanvas({
         accessible={true}
         accessibilityLabel="Área de desenho de gestos. Desenhe formas geométricas com o dedo."
         accessibilityRole="none"
-        accessibilityHint="Deslize o dedo para desenhar círculos, letra V ou linhas"
+        accessibilityHint="Deslize o dedo para desenhar runas simples: 0, 1, 7, V, L ou T"
       >
         {/* Instrução inicial */}
         {!lastResult && displayPoints.length === 0 && (

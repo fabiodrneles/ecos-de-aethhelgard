@@ -20,22 +20,22 @@ O jogador é **Elara Voss**, uma arqueóloga que perdeu a visão em um acidente 
 A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** que demonstram:
 
 - Onboarding acessível sem dependência visual
-- Mecânica de reconhecimento de gestos (6 formas)
+- Mecânica de reconhecimento de gestos (6 glifos rúnicos)
 - Áudio binaural 3D como sistema de navegação
 - Haptics como canal de feedback complementar
 - Arco narrativo com início, tensão e clímax
 - Viabilidade técnica em React Native
 
-### 1.3 Formas Geométricas — Tabela de Referência
+### 1.3 Glifos Rúnicos — Tabela de Referência
 
-| Forma            | Gesto                                    | Significado no Jogo                                                 | Tolerância de Reconhecimento   |
+| Glifo            | Gesto                                    | Significado no Jogo                                                 | Tolerância de Reconhecimento   |
 | ---------------- | ---------------------------------------- | ------------------------------------------------------------------- | ------------------------------- |
-| Círculo         | Traço circular (qualquer direção)     | **Ativação / Despertar** — acende mecanismos antigos       | ~70% de circularidade           |
+| Número 0        | Traço circular (qualquer direção)     | **Ativação / Despertar** — acende mecanismos antigos       | ~70% de circularidade           |
 | Letra V         | 2 traços diagonais formando um V aberto | **Ecolocalização** — revela o ambiente sonoro ao redor     | padrão em V detectado          |
-| Linha Horizontal | Traço da esquerda → direita ou inverso | **Abrir / Empurrar** — abre passagens, move objetos          | Desvio vertical < 15%           |
-| Linha Vertical   | Traço de cima → baixo ou inverso       | **Erguer / Invocar** — levanta mecanismos, chama entidades   | Desvio horizontal < 15%         |
-| Retângulo       | 4 traços, lados desiguais               | **Selar / Conter** — bloqueia forças, fecha portais         | Proporção lados > 1.3:1       |
-| Quadrado         | 4 traços, lados iguais                  | **Equilibrar / Harmonizar** — estabiliza elementos caóticos | Proporção lados ~ 1:1 (±20%) |
+| Número 1        | Traço reto vertical                     | **Invocar / Canalizar** — ativa colunas e focos de energia  | Linha vertical dominante         |
+| Número 7        | Barra superior + diagonal               | **Direcionar / Cortar** — aponta rotas e abre travas         | padrão angular de 7 detectado   |
+| Letra L         | Ângulo reto aberto                      | **Destravar / Revelar** — libera inscrições e passagens      | padrão em L com canto forte     |
+| Letra T         | Barra superior + haste central          | **Selar / Harmonizar** — fecha ciclos e estabiliza mecanismos | padrão em T detectado          |
 
 ---
 
@@ -94,11 +94,11 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 
 | Aspecto                             | Detalhe                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Narração (Voz IA)**       | *"Seus pés encontram degraus de pedra. O ar muda — fica pesado, úmido, antigo. Você é Elara Voss. Há dois anos, o mundo ficou escuro para você. Mas aqui... aqui o escuro fala de volta."* (pausa 2s) *"Você desce. Cada passo ecoa mais fundo. O chão se nivela. Você chegou a uma câmara. Há algo no centro — você sente o ar vibrar ao redor de um objeto. Estenda a mão. Desenhe um círculo na tela, devagar, como se estivesse contornando o que está à sua frente."* |
+| **Narração (Voz IA)**       | *"Seus pés encontram degraus de pedra. O ar muda — fica pesado, úmido, antigo. Você é Elara Voss. Há dois anos, o mundo ficou escuro para você. Mas aqui... aqui o escuro fala de volta."* (pausa 2s) *"Você desce. Cada passo ecoa mais fundo. O chão se nivela. Você chegou a uma câmara. Há algo no centro — você sente o ar vibrar ao redor de um objeto. Estenda a mão. Desenhe o número 0 na tela, devagar, como se estivesse contornando o que está à sua frente."* |
 | **Paisagem Sonora**           | Passos em pedra molhada (com reverb crescente a cada passo, simulando descida). Gotejar d'água esporádico (espacializado: gotas à esquerda, eco à direita). Ressonância sub-grave contínua que cresce sutilmente ("o pulso da tumba"). Ao nivelar: o reverb muda para câmara ampla. Som tonal suave vindo do centro (pan 0°).                                                                                                                                                            |
-| **Ação do Jogador**         | Desenhar um**Círculo** na tela.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| **Feedback de Áudio/Haptic** | **Acerto:** `pulse_confirm` + som de ativação (como cristal ressoando em frequência crescente). A ressonância sub-grave responde — o "pulso da tumba" sincroniza com o gesto. **Traço parcial:** vibração suave contínua enquanto desenha, indicando "está no caminho". **Erro (forma não reconhecida):** `warning_buzz` + som de pedra raspando (curto). Narração: *"Não foi isso. Sinta o ar. É redondo. Tente novamente — um círculo."*              |
-| **Condição de Vitória**    | Círculo reconhecido com ≥70% de circularidade → som de ativação + transição para Cena 2.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Ação do Jogador**         | Desenhar o **Número 0** na tela.                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Feedback de Áudio/Haptic** | **Acerto:** `pulse_confirm` + som de ativação (como cristal ressoando em frequência crescente). A ressonância sub-grave responde — o "pulso da tumba" sincroniza com o gesto. **Traço parcial:** vibração suave contínua enquanto desenha, indicando "está no caminho". **Erro (forma não reconhecida):** `warning_buzz` + som de pedra raspando (curto). Narração: *"Não foi isso. Sinta o ar. Feche o traço como um zero."*              |
+| **Condição de Vitória**    | Número 0 reconhecido com ≥70% de circularidade → som de ativação + transição para Cena 2.                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 **Notas de implementação:**
 
@@ -134,11 +134,11 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 
 | Aspecto                             | Detalhe                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Narração (Voz IA)**       | *"Você segue para a direita. O corredor é estreito — as paredes quase tocam seus ombros. Seus dedos deslizam pela pedra... há sulcos. Inscrições. Mas estas não foram feitas para olhos."* (pausa) *"Uma voz antiga sussurra das paredes, mas está presa. Desenhe uma linha horizontal — como se estivesse abrindo um livro. Liberte a voz."*                                                                                 |
+| **Narração (Voz IA)**       | *"Você segue para a direita. O corredor é estreito — as paredes quase tocam seus ombros. Seus dedos deslizam pela pedra... há sulcos. Inscrições. Mas estas não foram feitas para olhos."* (pausa) *"Uma voz antiga sussurra das paredes, mas está presa. Desenhe a letra L — como quem vira uma chave de pedra. Liberte a voz."*                                                                                 |
 | **Paisagem Sonora**           | Corredor estreito: reverb curto e apertado. Passos ecoam rapidamente. Sussurros incompreensíveis (vozes sobrepostas, filtro passa-baixa). Vento passando por frestas (espacializado acima). Ao desenhar a linha: os sussurros ganham clareza gradualmente.                                                                                                                                                                                |
-| **Ação do Jogador**         | Desenhar uma**Linha Horizontal** na tela.                                                                                                                                                                                                                                                                                                                                                                                            |
-| **Feedback de Áudio/Haptic** | **Acerto:** `stone_shift` (haptic). Som de pedra deslizando/abrindo. Os sussurros se tornam uma voz clara: *"(Voz Antiga, grave, com reverb) Aquele que desenha no escuro... será guiado pelo eco. A porta à frente exige três formas em sequência. Erre... e a tumba esquece seu nome."* **Erro:** `warning_buzz`. *"Horizontal. Como o horizonte. Da esquerda para a direita, ou o contrário. Uma linha reta."* |
-| **Condição de Vitória**    | Linha horizontal reconhecida → inscrição liberada → voz antiga entrega a dica para a Cena 4.                                                                                                                                                                                                                                                                                                                                           |
+| **Ação do Jogador**         | Desenhar uma **Letra L** na tela.                                                                                                                                                                                                                                                                                                                                                                                            |
+| **Feedback de Áudio/Haptic** | **Acerto:** `stone_shift` (haptic). Som de pedra deslizando/abrindo. Os sussurros se tornam uma voz clara: *"(Voz Antiga, grave, com reverb) Aquele que desenha no escuro... será guiado pelo eco. A porta à frente exige três glifos em sequência. Erre... e a tumba esquece seu nome."* **Erro:** `warning_buzz`. *"Faça um L claro: um traço e uma dobra."* |
+| **Condição de Vitória**    | Letra L reconhecida → inscrição liberada → voz antiga entrega a dica para a Cena 4.                                                                                                                                                                                                                                                                                                                                           |
 
 **Notas de implementação:**
 
@@ -154,17 +154,17 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 
 | Aspecto                             | Detalhe                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Narração (Voz IA)**       | *"O corredor termina. Diante de você, uma porta que não é feita de madeira ou ferro. É feita de som. Você sente três depressões na superfície — três formas vazias esperando serem preenchidas."* (pausa) *"A voz disse: três formas em sequência. Ouça a porta. Ela vai dizer o que precisa."* A porta emite 3 tons em sequência: 1. Tom circular (onda senoidal suave, contínua) 2. Tom vertical (onda quadrada, impulso ascendente) 3. Tom quadrado (duas frequências em harmonia estável) Narração: *"Você ouviu? Redondo... ascendente... e harmônico. Dê à porta o que ela pede. Primeiro: o tom redondo."*                                                                                                                           |
+| **Narração (Voz IA)**       | *"O corredor termina. Diante de você, uma porta que não é feita de madeira ou ferro. É feita de som. Você sente três depressões na superfície — três glifos vazios esperando serem preenchidos."* (pausa) *"A voz disse: três glifos em sequência. Ouça a porta. Ela vai dizer o que precisa."* A porta emite 3 tons em sequência: 1. Tom circular (onda senoidal suave, contínua) 2. Tom vertical (onda quadrada, impulso ascendente) 3. Tom angular estabilizado (duas frequências em harmonia estável) Narração: *"Você ouviu? Zero... um... e sete. Dê à porta o que ela pede. Primeiro: o zero."*                                                                                                                           |
 | **Paisagem Sonora**           | Câmara intermediária: reverb médio. A porta emite um zumbido constante (drone em Dó menor). As três depressões emitem seus tons individualmente quando o jogador "passa o dedo" sobre elas (dividindo a tela em 3 zonas horizontais: topo, meio, base).`heartbeat` haptic começa sutil — indicando tensão.                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| **Ação do Jogador**         | Desenhar as 3 formas**na ordem correta**: 1. **Círculo** (tom redondo) 2. **Linha Vertical** (impulso ascendente) 3. **Quadrado** (harmonia estável)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Ação do Jogador**         | Desenhar os 3 glifos **na ordem correta**: 1. **Número 0** (tom redondo) 2. **Número 1** (impulso ascendente) 3. **Número 7** (harmonia angular)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | **Feedback de Áudio/Haptic** | **Acerto (cada forma):** `pulse_confirm` + o tom correspondente da porta resoa e "encaixa" (som de selo se fechando, como pedra em encaixe perfeito). A depressão correspondente para de emitir seu tom individual. `heartbeat` desacelera a cada acerto (tensão diminuindo). **Sequência completa:** `stone_shift` prolongado. Som massivo de porta ressoando, mecanismos girando, ar sendo liberado. *"A porta reconhece você. O selo está aberto."* **Erro de forma:** `warning_buzz` + tom dissonante curto. *"Não. Ouça novamente."* (A porta repete o tom da forma esperada). **Erro de ordem:** `warning_buzz` × 2. *"A sequência importa. Ouça desde o início."* (Os 3 tons são repetidos na ordem correta). |
 | **Condição de Vitória**    | 3 formas corretas na ordem correta → porta abre → transição para Cena 5.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 **Notas de implementação:**
 
-- Cada forma tem um "tom assinatura" consistente em todo o jogo (aprendizado por associação)
+- Cada glifo tem um "tom assinatura" consistente em todo o jogo (aprendizado por associação)
 - A tela dividida em 3 zonas (topo/meio/base) permite exploração tátil — cada zona emite preview do tom ao ser tocada (sem desenhar)
-- Máximo 3 tentativas de sequência completa antes de assistência: *"Eu vou sussurrar a ordem. Primeiro... um círculo."*
+- Máximo 3 tentativas de sequência completa antes de assistência: *"Eu vou sussurrar a ordem. Primeiro... zero."*
 - Registrar tempo de resolução do puzzle para calibrar dificuldade futura
 
 ---
@@ -177,9 +177,9 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Narração (Voz IA)**       | *"O ar muda. Este espaço é vasto — seu eco demora a voltar. Você está na Câmara do Eco. No centro, o chão pulsa. Não é seu coração. É algo mais antigo."* (pausa 2s) *"Um portal. Adormecido há milênios. Ele não abre com chave. Abre com ritmo. Você sente a pulsação? (haptic: `heartbeat` sincronizado) Ela tem um padrão. Sinta... e repita."* O portal emite um padrão rítmico: **BUM - bum - BUM - BUM - bum** (pausa) *"Mas antes de despertar o portal... você precisa ver esta câmara. Desenhe a letra V. Deixe o eco mostrar o que há aqui."*                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | **Paisagem Sonora**           | Câmara colossal: reverb de 6-8 segundos de cauda. Ressonâncias sub-graves profundas. O portal: pulsação rítmica constante (kick drum processado + sub-bass). Detalhes sonoros posicionados em 360°: correntes à esquerda, água escorrendo à direita, vento vindo de cima, e algo respirando atrás (espacializado em 180°).`heartbeat` haptic sincronizado com a pulsação do portal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| **Ação do Jogador**         | **Fase A:** Desenhar uma **Letra V** (ecolocalização da câmara). **Fase B:** Desenhar o **padrão rítmico** do portal usando formas: — BUM = **Linha Vertical** (impulso forte, descendente) — bum = **Círculo** (ativação suave) Sequência: **Vertical - Círculo - Vertical - Vertical - Círculo**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Ação do Jogador**         | **Fase A:** Desenhar uma **Letra V** (ecolocalização da câmara). **Fase B:** Desenhar o **padrão rítmico** do portal usando glifos: — BUM = **Número 1** (impulso forte, descendente) — bum = **Número 0** (ativação suave) Sequência: **1 - 0 - 1 - 1 - 0**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | **Feedback de Áudio/Haptic** | **Fase A — Letra V (Ecolocalização):** `wave_sweep`. O eco retorna revelando a câmara: — *Frente:* Portal pulsante (frequência dominante) — *Esquerda:* Abismo (eco que não retorna — silêncio) — *Direita:* Parede com mecanismo (eco metálico rápido) — *Atrás:* Algo vivo? (eco distorcido, irregular — entidade?) Narração: *"O portal está à frente. Mas... há algo atrás de você. Não se vire. Foque no ritmo."* **Fase B — Sequência Rítmica:** Cada forma correta no tempo certo: `ritual_rhythm` (haptic sync) + tom do portal respondendo (a frequência sobe a cada acerto). A pulsação do portal acelera — `heartbeat` haptic acelera junto. **Erro de ritmo/forma:** Tom grave de rejeição. A "coisa atrás" se move mais perto (áudio binaural: som irregular atrás se aproxima). `warning_buzz`. *"O ritmo se perdeu. Sinta a pulsação. Tente novamente."* **Sequência completa (5/5):** Silêncio abrupto — 2 segundos. Depois: EXPLOSÃO sonora controlada — o portal abre com onda de som que viaja do centro para 360° (sweep binaural completo). `ritual_rhythm` prolongado (haptic forte e satisfatório). O som estabiliza em um acorde maior ressonante (resolução harmônica). |
-| **Condição de Vitória**    | Letra V + sequência rítmica de 5 formas completa → portal ativado → transição para Cena 6.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Condição de Vitória**    | Letra V + sequência rítmica 1-0-1-1-0 completa → portal ativado → transição para Cena 6.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 **Notas de implementação:**
 
@@ -218,10 +218,10 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 
 | Aspecto                             | Detalhe                                                                                                                                                                                                                                                                                                                 |
 | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Narração (Voz IA)**       | *"Obrigado por jogar a demonstração de O Eco de Aethelgard."* (pausa) *"Este jogo está em desenvolvimento. Cada forma que você desenhou nos ajuda a construir um mundo onde ver não é necessário para explorar."* (pausa) *"Toque na tela para saber mais. Ou desenhe um círculo... para ouvir de novo."* |
+| **Narração (Voz IA)**       | *"Obrigado por jogar a demonstração de O Eco de Aethelgard."* (pausa) *"Este jogo está em desenvolvimento. Cada glifo que você desenhou nos ajuda a construir um mundo onde ver não é necessário para explorar."* (pausa) *"Toque na tela para saber mais. Ou desenhe um zero... para ouvir de novo."* |
 | **Paisagem Sonora**           | Ambiente calmo — versão suave e resolvida do tema sonoro da tumba. Sem tensão. Tom de esperança/conclusão.                                                                                                                                                                                                         |
-| **Ação do Jogador**         | Tap → link/info do projeto. Círculo → replay da demo.                                                                                                                                                                                                                                                                |
-| **Feedback de Áudio/Haptic** | `pulse_confirm` para tap. Para o círculo: o som de ativação da Cena 1 retorna (callback emocional).                                                                                                                                                                                                                |
+| **Ação do Jogador**         | Tap → link/info do projeto. Número 0 → replay da demo.                                                                                                                                                                                                                                                                |
+| **Feedback de Áudio/Haptic** | `pulse_confirm` para tap. Para o zero: o som de ativação da Cena 1 retorna (callback emocional).                                                                                                                                                                                                                |
 | **Condição de Vitória**    | N/A — tela final.                                                                                                                                                                                                                                                                                                      |
 
 ---
@@ -233,19 +233,19 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
         │ tap × 2
         ▼
 [Cena 1: A Descida]
-        │ Círculo ✓
+  │ Número 0 ✓
         ▼
 [Cena 2: Ecolocalização]
         │ Letra V ✓
         ▼
 [Cena 3: Corredor das Inscrições]
-        │ Linha Horizontal ✓
+  │ Letra L ✓
         ▼
 [Cena 4: Porta dos Três Selos]
-        │ Círculo → Linha Vertical → Quadrado ✓
+  │ Número 0 → Número 1 → Número 7 ✓
         ▼
 [Cena 5: Câmara do Eco — CLÍMAX]
-        │ Letra V ✓ → Sequência Rítmica (V-C-V-V-C) ✓
+  │ Letra V ✓ → Sequência Rítmica (1-0-1-1-0) ✓
         ▼
 [Cena 6: O Outro Lado]
         │ (automático)
@@ -316,7 +316,7 @@ A demo cobre **uma sessão completa de ~8-12 minutos** dividida em **7 cenas** q
 | State Machine            | `xstate` ou `zustand`                                                   | Gerenciamento de cenas e estados     |
 | Animações de áudio    | `react-native-reanimated`                                                 | Sincronização timing áudio/haptic |
 
-### 6.2 Algoritmo de Reconhecimento de Formas
+### 6.2 Algoritmo de Reconhecimento de Glifos
 
 ```
 Entrada: array de pontos {x, y, timestamp}
@@ -327,15 +327,13 @@ Entrada: array de pontos {x, y, timestamp}
    a. Se pontos < 10 → rejeitar (traço muito curto)
    b. Calcular ângulos entre segmentos consecutivos
    c. Detectar vértices (mudança de ângulo > 30°)
-   d. Se 0 vértices + alta circularidade* → CÍRCULO
-  e. Se padrão em V aberto → LETRA V
-   f. Se 4 vértices:
-      - Se aspect ratio ~ 1:1 (±20%) → QUADRADO
-      - Se aspect ratio > 1.3:1 → RETÂNGULO
-   g. Se 0-1 vértices + baixa circularidade:
-      - Se desvio vertical < 15% → LINHA HORIZONTAL
-      - Se desvio horizontal < 15% → LINHA VERTICAL
-   h. Caso contrário → FORMA NÃO RECONHECIDA
+  d. Se traço vertical dominante → NÚMERO 1
+  e. Se traço fechado + alta circularidade* → NÚMERO 0
+  f. Se padrão em V aberto → LETRA V
+  g. Se padrão em L aberto (canto forte) → LETRA L
+  h. Se barra superior + diagonal → NÚMERO 7
+  i. Se barra superior + haste central → LETRA T
+  j. Caso contrário → GLIFO NÃO RECONHECIDO
 
 * Circularidade = 4π × área / perímetro²
   (1.0 = círculo perfeito, aceitar ≥ 0.70)
@@ -350,8 +348,8 @@ states: {
 
   scene1_descent: {
     on: {
-      SHAPE_CIRCLE: 'scene2_echolocation',
-      SHAPE_WRONG:  { actions: 'playError', target: 'scene1_descent' }
+      SHAPE_NUMBER_0: 'scene2_echolocation',
+      SHAPE_WRONG:    { actions: 'playError', target: 'scene1_descent' }
     }
   },
 
@@ -364,17 +362,17 @@ states: {
 
   scene3_corridor: {
     on: {
-      SHAPE_H_LINE: 'scene4_door',
-      SHAPE_WRONG:  { actions: 'playError', target: 'scene3_corridor' }
+      SHAPE_LETTER_L: 'scene4_door',
+      SHAPE_WRONG:    { actions: 'playError', target: 'scene3_corridor' }
     }
   },
 
   scene4_door: {
     initial: 'seal1',
     states: {
-      seal1: { on: { SHAPE_CIRCLE:   'seal2', SHAPE_WRONG: { actions: 'resetSequence' } } },
-      seal2: { on: { SHAPE_V_LINE:   'seal3', SHAPE_WRONG: { actions: 'resetSequence' } } },
-      seal3: { on: { SHAPE_SQUARE:   'complete', SHAPE_WRONG: { actions: 'resetSequence' } } },
+      seal1: { on: { SHAPE_NUMBER_0: 'seal2', SHAPE_WRONG: { actions: 'resetSequence' } } },
+      seal2: { on: { SHAPE_NUMBER_1: 'seal3', SHAPE_WRONG: { actions: 'resetSequence' } } },
+      seal3: { on: { SHAPE_NUMBER_7: 'complete', SHAPE_WRONG: { actions: 'resetSequence' } } },
       complete: { type: 'final' }
     },
     onDone: 'scene5_climax'
@@ -387,11 +385,11 @@ states: {
       rhythm: {
         initial: 'beat1',
         states: {
-          beat1: { on: { SHAPE_V_LINE: 'beat2' } },
-          beat2: { on: { SHAPE_CIRCLE: 'beat3' } },
-          beat3: { on: { SHAPE_V_LINE: 'beat4' } },
-          beat4: { on: { SHAPE_V_LINE: 'beat5' } },
-          beat5: { on: { SHAPE_CIRCLE: 'complete' } },
+          beat1: { on: { SHAPE_NUMBER_1: 'beat2' } },
+          beat2: { on: { SHAPE_NUMBER_0: 'beat3' } },
+          beat3: { on: { SHAPE_NUMBER_1: 'beat4' } },
+          beat4: { on: { SHAPE_NUMBER_1: 'beat5' } },
+          beat5: { on: { SHAPE_NUMBER_0: 'complete' } },
           complete: { type: 'final' }
         }
       }
