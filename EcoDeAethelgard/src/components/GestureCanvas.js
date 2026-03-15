@@ -49,7 +49,7 @@ const HAPTIC_OPTIONS = {
 const HAPTIC_POINT_INTERVAL = 12;
 
 // Confiança mínima para aceitar o reconhecimento
-const MIN_CONFIDENCE = 0.50;
+const MIN_CONFIDENCE = 0.60;
 
 // ---------------------------------------------------------------------------
 // Componente

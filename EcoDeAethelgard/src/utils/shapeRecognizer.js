@@ -17,7 +17,7 @@ const DEFAULT_CONFIG = {
   minPoints: 8,
 
   // Moving average — janela de suavização
-  smoothWindowSize: 5,
+  smoothWindowSize: 3,
 
   // Quantidade de pontos após reamostragem (mais = mais preciso, mais lento)
   resampleCount: 64,
@@ -26,7 +26,7 @@ const DEFAULT_CONFIG = {
   circularityThreshold: 0.70,
 
   // Detecção de vértices — ângulo mínimo de mudança de direção (graus)
-  cornerAngleThreshold: 40,
+  cornerAngleThreshold: 52,
 
   // Detecção de vértices — janela de pontos para calcular vetores de direção
   cornerWindowSize: 5,
@@ -46,7 +46,7 @@ const DEFAULT_CONFIG = {
   squareAspectRatioMax: 1.25,
 
   // Distância mínima entre dois vértices detectados (normalizada) para merge
-  cornerMergeDistance: 0.12,
+  cornerMergeDistance: 0.09,
 };
 
 // ---------------------------------------------------------------------------
@@ -451,8 +451,8 @@ function recognizeShape(rawPoints, config = {}) {
   if (corners.length === 3) {
     return {
       shape: 'triangle',
-      confidence: 0.55,
-      debug: { ...debugInfo, reason: 'relaxed_triangle_open' },
+      confidence: 0.45,
+      debug: { ...debugInfo, reason: 'relaxed_triangle_open_low_confidence' },
     };
   }
 
