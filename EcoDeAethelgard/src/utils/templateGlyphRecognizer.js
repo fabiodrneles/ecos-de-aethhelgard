@@ -5,7 +5,7 @@
  * algoritmos open-source "$-recognizers" ($1/$P).
  *
  * Mantém apenas glifos de 1 traço para reduzir ambiguidades:
- * number_0, number_1, number_7, letter_v, letter_l
+ * circle, horizontal_line, vertical_line, letter_v
  */
 
 const DEFAULT_TEMPLATE_CONFIG = {
@@ -190,16 +190,16 @@ function buildCircle(count) {
 function makeTemplateSet(resampleCount) {
   const base = [
     {
-      shape: 'number_0',
+      shape: 'circle',
       variants: [buildCircle(resampleCount)],
     },
     {
-      shape: 'number_1',
+      shape: 'horizontal_line',
       variants: [
         buildPolyline(
           [
-            { x: 0.5, y: 0.08 },
-            { x: 0.5, y: 0.92 },
+            { x: 0.08, y: 0.50 },
+            { x: 0.92, y: 0.50 },
           ],
           resampleCount,
         ),
@@ -227,42 +227,12 @@ function makeTemplateSet(resampleCount) {
       ],
     },
     {
-      shape: 'letter_l',
+      shape: 'vertical_line',
       variants: [
         buildPolyline(
           [
-            { x: 0.20, y: 0.10 },
-            { x: 0.20, y: 0.90 },
-            { x: 0.82, y: 0.90 },
-          ],
-          resampleCount,
-        ),
-        buildPolyline(
-          [
-            { x: 0.80, y: 0.10 },
-            { x: 0.80, y: 0.90 },
-            { x: 0.18, y: 0.90 },
-          ],
-          resampleCount,
-        ),
-      ],
-    },
-    {
-      shape: 'number_7',
-      variants: [
-        buildPolyline(
-          [
-            { x: 0.12, y: 0.16 },
-            { x: 0.88, y: 0.16 },
-            { x: 0.34, y: 0.92 },
-          ],
-          resampleCount,
-        ),
-        buildPolyline(
-          [
-            { x: 0.88, y: 0.16 },
-            { x: 0.12, y: 0.16 },
-            { x: 0.66, y: 0.92 },
+            { x: 0.50, y: 0.08 },
+            { x: 0.50, y: 0.92 },
           ],
           resampleCount,
         ),
@@ -306,11 +276,17 @@ function extractDisambiguationFeatures(points) {
 
   let maxY = -Infinity;
   let maxYIndex = 0;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
   for (let index = 0; index < points.length; index++) {
     if (points[index].y > maxY) {
       maxY = points[index].y;
       maxYIndex = index;
     }
+    if (points[index].x < minX) minX = points[index].x;
+    if (points[index].y < minY) minY = points[index].y;
+    if (points[index].x > maxX) maxX = points[index].x;
   }
 
   const lowestX = points[maxYIndex].x;
@@ -323,6 +299,31 @@ function extractDisambiguationFeatures(points) {
   const endpointVerticalDelta = Math.abs(end.y - start.y);
   const endpointDistance = distance(start, end);
   const bottomCenterDeviation = Math.abs(lowestX - 0.5);
+  const width = Math.max(0.001, maxX - minX);
+  const height = Math.max(0.001, maxY - minY);
+  const widthHeightRatio = width / height;
+  const heightWidthRatio = height / width;
+
+  let centerX = 0;
+  let centerY = 0;
+  for (const point of points) {
+    centerX += point.x;
+    centerY += point.y;
+  }
+  centerX /= points.length;
+  centerY /= points.length;
+
+  const radii = points.map((point) =>
+    Math.sqrt((point.x - centerX) ** 2 + (point.y - centerY) ** 2),
+  );
+  const meanRadius =
+    radii.reduce((sum, radius) => sum + radius, 0) / radii.length;
+  const radiusStd = Math.sqrt(
+    radii.reduce((sum, radius) => sum + (radius - meanRadius) ** 2, 0) /
+      radii.length,
+  );
+  const radialConsistency =
+    meanRadius > 0 ? Math.max(0, 1 - radiusStd / meanRadius) : 0;
 
   return {
     topHorizontalRatio:
@@ -334,47 +335,78 @@ function extractDisambiguationFeatures(points) {
     endpointVerticalDelta,
     endpointDistance,
     bottomCenterDeviation,
+    widthHeightRatio,
+    heightWidthRatio,
+    radialConsistency,
   };
 }
 
 function applyDisambiguationScores(scoreByShape, features) {
   const adjusted = { ...scoreByShape };
 
-  if (adjusted.number_7 !== undefined) {
-    adjusted.number_7 += Math.max(-0.12, Math.min(0.12, (features.topHorizontalRatio - 0.12) * 0.7));
-    adjusted.number_7 += Math.max(-0.10, Math.min(0.10, (features.diagonalDownRatio - 0.20) * 0.6));
-    adjusted.number_7 += Math.max(-0.08, Math.min(0.08, (features.endpointVerticalDelta - 0.20) * 0.5));
-    adjusted.number_7 -= Math.max(0, (0.18 - features.bottomCenterDeviation) * 0.25);
+  if (adjusted.horizontal_line !== undefined) {
+    adjusted.horizontal_line += Math.max(
+      -0.14,
+      Math.min(0.14, (features.widthHeightRatio - 2.2) * 0.06),
+    );
+    adjusted.horizontal_line -= Math.max(
+      0,
+      (features.endpointVerticalDelta - 0.28) * 0.45,
+    );
+    adjusted.horizontal_line -= Math.max(0, (0.32 - features.endpointDistance) * 0.2);
+  }
+
+  if (adjusted.vertical_line !== undefined) {
+    adjusted.vertical_line += Math.max(
+      -0.14,
+      Math.min(0.14, (features.heightWidthRatio - 2.2) * 0.06),
+    );
+    adjusted.vertical_line -= Math.max(
+      0,
+      (features.endpointHorizontalDelta - 0.28) * 0.45,
+    );
+    adjusted.vertical_line -= Math.max(0, (0.32 - features.endpointDistance) * 0.2);
   }
 
   if (adjusted.letter_v !== undefined) {
-    adjusted.letter_v += Math.max(-0.12, Math.min(0.12, (features.centerBottomness - 0.10) * 0.8));
-    adjusted.letter_v += Math.max(-0.10, Math.min(0.10, (features.endpointHorizontalDelta - 0.22) * 0.6));
+    adjusted.letter_v += Math.max(
+      -0.12,
+      Math.min(0.12, (features.centerBottomness - 0.10) * 0.8),
+    );
+    adjusted.letter_v += Math.max(
+      -0.10,
+      Math.min(0.10, (features.endpointHorizontalDelta - 0.22) * 0.6),
+    );
     adjusted.letter_v -= Math.max(0, (features.topHorizontalRatio - 0.28) * 0.35);
-    adjusted.letter_v -= Math.max(0, (features.bottomCenterDeviation - 0.22) * 0.25);
+    adjusted.letter_v -= Math.max(0, (features.bottomCenterDeviation - 0.24) * 0.25);
+    adjusted.letter_v -= Math.max(0, (0.26 - features.endpointDistance) * 0.30);
   }
 
-  if (adjusted.number_0 !== undefined) {
-    adjusted.number_0 += Math.max(-0.12, Math.min(0.12, (0.24 - features.endpointDistance) * 0.8));
-  }
-
-  if (adjusted.number_1 !== undefined) {
-    adjusted.number_1 += Math.max(-0.12, Math.min(0.12, (features.endpointVerticalDelta - 0.38) * 0.6));
-    adjusted.number_1 -= Math.max(0, (features.endpointHorizontalDelta - 0.16) * 0.4);
+  if (adjusted.circle !== undefined) {
+    adjusted.circle += Math.max(
+      -0.16,
+      Math.min(0.16, (0.30 - features.endpointDistance) * 0.8),
+    );
+    adjusted.circle += Math.max(
+      -0.16,
+      Math.min(0.16, (features.radialConsistency - 0.62) * 0.6),
+    );
+    adjusted.circle -= Math.max(0, (features.widthHeightRatio - 1.75) * 0.08);
+    adjusted.circle -= Math.max(0, (features.heightWidthRatio - 1.75) * 0.08);
   }
 
   return adjusted;
 }
 
 function validateTopShape(best, features) {
-  if (best.shape === 'number_7') {
+  if (best.shape === 'horizontal_line') {
     const valid =
-      features.topHorizontalRatio >= 0.10 &&
-      features.diagonalDownRatio >= 0.18 &&
-      features.endpointVerticalDelta >= 0.18;
+      features.widthHeightRatio >= 2.2 &&
+      features.endpointVerticalDelta <= 0.30 &&
+      features.endpointDistance >= 0.38;
     return {
       valid,
-      reason: valid ? 'validated_7' : 'rejected_7_missing_signature',
+      reason: valid ? 'validated_horizontal_line' : 'rejected_horizontal_line_signature',
     };
   }
 
@@ -382,28 +414,32 @@ function validateTopShape(best, features) {
     const valid =
       features.centerBottomness >= 0.10 &&
       features.endpointHorizontalDelta >= 0.22 &&
-      features.topHorizontalRatio <= 0.32;
+      features.topHorizontalRatio <= 0.32 &&
+      features.endpointDistance >= 0.24;
     return {
       valid,
       reason: valid ? 'validated_v' : 'rejected_v_missing_signature',
     };
   }
 
-  if (best.shape === 'number_0') {
-    const valid = features.endpointDistance <= 0.30;
+  if (best.shape === 'vertical_line') {
+    const valid =
+      features.heightWidthRatio >= 2.2 &&
+      features.endpointHorizontalDelta <= 0.30 &&
+      features.endpointDistance >= 0.38;
     return {
       valid,
-      reason: valid ? 'validated_0' : 'rejected_0_open_loop',
+      reason: valid ? 'validated_vertical_line' : 'rejected_vertical_line_signature',
     };
   }
 
-  if (best.shape === 'number_1') {
+  if (best.shape === 'circle') {
     const valid =
-      features.endpointVerticalDelta >= 0.34 &&
-      features.endpointHorizontalDelta <= 0.20;
+      features.endpointDistance <= 0.32 &&
+      features.radialConsistency >= 0.58;
     return {
       valid,
-      reason: valid ? 'validated_1' : 'rejected_1_non_vertical',
+      reason: valid ? 'validated_circle' : 'rejected_circle_open_or_irregular',
     };
   }
 
